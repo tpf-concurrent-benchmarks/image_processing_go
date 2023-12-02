@@ -1,1 +1,1 @@
-# image_processing_go
+# Image processing in Go
