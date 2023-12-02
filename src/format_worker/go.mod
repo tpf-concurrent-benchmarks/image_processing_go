@@ -1,4 +1,4 @@
-module manager
+module format_worker
 
 go 1.21.4
 

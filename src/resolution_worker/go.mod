@@ -1,13 +1,13 @@
-module worker
+module resolution_worker
 
-go 1.21.4
+go 1.21
 
 require (
 	github.com/nats-io/nats.go v1.31.0
-	shared v0.0.0-00010101000000-000000000000
+	//shared v0.0.0-00010101000000-000000000000
 )
 
-replace shared => ../common
+//replace shared => ../common
 
 require (
 	github.com/klauspost/compress v1.17.0 // indirect
