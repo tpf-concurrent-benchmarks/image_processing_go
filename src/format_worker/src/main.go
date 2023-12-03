@@ -67,6 +67,6 @@ func getFilenameWithExtension(fullPath, extension string) string {
 
 func createOutputDir(imagePath string) string {
 	newFilename := getFilenameWithExtension(imagePath, ".png")
-	outputPath := filepath.Join("../../shared_vol/formatted", newFilename)
+	outputPath := filepath.Join("../shared_vol/formatted", newFilename)
 	return outputPath
 }

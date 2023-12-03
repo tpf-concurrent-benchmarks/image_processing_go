@@ -34,7 +34,7 @@ func subscribeForWork(conn *nats.Conn, workerConfig config.Config) {
 		imagePath := string(msg.Data)
 		// TODO: replace with image cropping
 		log.Println("Simulating work on ", imagePath)
-		newImagePath := createOutputDir(imagePath)
+		//newImagePath := createOutputDir(imagePath)
 		err := conn.Publish(workerConfig.Queues.Output, []byte(common.JobDoneMessage))
 		if err != nil {
 			log.Fatalf("Error publishing to queue: %s", err)
@@ -60,6 +60,6 @@ func waitForEnd(conn *nats.Conn, endQueue string, stop chan bool) {
 
 func createOutputDir(imagePath string) string {
 	filename := filepath.Base(imagePath)
-	outputPath := filepath.Join("../../shared_vol/cropped", filename)
+	outputPath := filepath.Join("../shared_vol/cropped", filename)
 	return outputPath
 }

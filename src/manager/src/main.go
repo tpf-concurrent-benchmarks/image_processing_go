@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to connect to NATS: %v", err)
 	}
-	imagesFiles := utils.GetImagesInDirectory("../../shared_vol/input/")
+	imagesFiles := utils.GetImagesInDirectory("../shared_vol/input/")
 	shouldStop := make(chan bool)
 
 	// For sync purposes

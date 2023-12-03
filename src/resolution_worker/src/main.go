@@ -60,6 +60,6 @@ func waitForEnd(conn *nats.Conn, endQueue string, stop chan bool) {
 
 func createOutputDir(imagePath string) string {
 	filename := filepath.Base(imagePath)
-	outputPath := filepath.Join("../../shared_vol/resized", filename)
+	outputPath := filepath.Join("../shared_vol/resized", filename)
 	return outputPath
 }
