@@ -1,0 +1,135 @@
+version: "3.7"
+
+services:
+  graphite:
+    image: graphiteapp/graphite-statsd:latest
+    volumes:
+      - "./statsd.config.js:/opt/statsd/config/udp.js:ro"
+      - "./statsd.config.js:/opt/statsd/config/tcp.js:ro"
+      - "./graphite.carbon.conf:/opt/graphite/conf/carbon.conf:ro"
+      - "./graphite.storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf:ro"
+      - "./graphite:/opt/graphite/storage/:rw"
+    ports:
+      - "8080:8080"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    command: >
+      -storage_driver="statsd"
+      -storage_driver_host="graphite:8125"
+      -storage_driver_db="cadvisor"
+      -storage_driver_buffer_duration="1m0s"
+      --enable_metrics=cpu,cpuLoad,disk,diskIO,memory,network
+    depends_on:
+      - graphite
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/dev/disk/:/dev/disk:ro"
+
+  grafana:
+    image: efoppiano/grafana:0.1
+    ports:
+      - "8081:3000"
+    volumes:
+      - "grafana_config:/var/lib/grafana"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_RENDERING_SERVER_URL=http://renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
+      - GF_LOG_FILTERS=rendering:debug
+    depends_on:
+      - graphite
+
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports:
+      - "8082:8081"
+
+  nats:
+    image: nats:2.10.5
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "6222:6222"
+
+  format_worker:
+    image: image_processing_go_format_worker
+    command: bash -c "sleep 10 && cd /app/format_worker/ && ./format-worker"
+    depends_on:
+      - graphite
+      - nats
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      replicas: ${N_WORKERS}
+      restart_policy:
+        condition: none
+    environment:
+      - LOCAL=${LOCAL}
+      - NODE_ID=format.worker_{{.Task.Slot}}
+
+  resolution_worker:
+    image: image_processing_go_resolution_worker
+    command: bash -c "sleep 10 && cd /app/resolution_worker/ && ./resolution-worker"
+    depends_on:
+      - graphite
+      - nats
+      - format_worker
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      replicas: ${N_WORKERS}
+      restart_policy:
+        condition: none
+    environment:
+      - LOCAL=${LOCAL}
+      - NODE_ID=resolution.worker_{{.Task.Slot}}
+
+  size_worker:
+    image: image_processing_go_size_worker
+    command: bash -c "sleep 10 && cd /app/size_worker/ && ./size-worker"
+    depends_on:
+      - graphite
+      - nats
+      - resolution_worker
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      replicas: ${N_WORKERS}
+      restart_policy:
+        condition: none
+    environment:
+      - LOCAL=${LOCAL}
+      - NODE_ID=size.worker_{{.Task.Slot}}
+
+  manager:
+    image: image_processing_go_manager
+    command: bash -c "sleep 10 && cd /app/manager/ && ./manager"
+    depends_on:
+      - graphite
+      - nats
+      - format_worker
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      restart_policy:
+        condition: none
+    environment:
+      - LOCAL=${LOCAL}
+      - NODE_ID=manager
+
+volumes:
+  grafana_config:
+    external: true
