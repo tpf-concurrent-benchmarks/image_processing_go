@@ -1,4 +1,4 @@
-N_WORKERS=2
+N_WORKERS=4
 
 init:
 	docker swarm init
@@ -19,7 +19,7 @@ remove:
 	docker stack rm ip_go
 
 docker_build:
-	docker compose -f=docker-compose-deploy-local.yml build
+	N_WORKERS=${N_WORKERS} docker compose -f=docker-compose-deploy-local.yml build
 
 create_directories:
 	mkdir -p graphite
