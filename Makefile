@@ -52,3 +52,15 @@ format:
 	cd ./src/format_worker && go fmt ./...
 	cd ./src/resolution_worker && go fmt ./...
 	cd ./src/size_worker && go fmt ./...
+
+run_format_worker_local:
+	cd ./src/format_worker && LOCAL=local go run ./src
+
+run_resolution_worker_local:
+	cd ./src/resolution_worker && LOCAL=local go run ./src
+
+run_size_worker_local:
+	cd ./src/size_worker && LOCAL=local go run ./src
+	
+run_manager_local:
+	cd ./src/manager && LOCAL=local go run ./src

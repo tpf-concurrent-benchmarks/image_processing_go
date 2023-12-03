@@ -7,9 +7,12 @@ import (
 	common "shared"
 	"shared/config"
 	"strings"
+	"format_worker/src/image_processing"
 )
 
 func main() {
+	image_processing.Format("src/resources/rust.jpeg", "src/resources/rust.png")
+
 	workerConfig := config.GetConfig()
 	connString := config.CreateConnectionAddress(workerConfig.Host, workerConfig.Port)
 	natsConn, err := nats.Connect(connString)
