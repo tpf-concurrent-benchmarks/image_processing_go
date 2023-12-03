@@ -6,9 +6,12 @@ import (
 	"path/filepath"
 	common "shared"
 	"shared/config"
+	"size_worker/src/image_processing"
 )
 
 func main() {
+	image_processing.CropCentered("src/resources/rust.png", "src/resources/rust_cropped.png", 100, 100)
+
 	workerConfig := config.GetConfig()
 	connString := config.CreateConnectionAddress(workerConfig.Host, workerConfig.Port)
 	natsConn, err := nats.Connect(connString)
