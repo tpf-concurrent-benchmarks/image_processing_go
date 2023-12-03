@@ -1,0 +1,13 @@
+FROM golang:1.21.4
+
+WORKDIR /app
+
+COPY ./format_worker/go.mod ./format_worker/go.sum ./format_worker/
+COPY ./common ./common
+RUN cd format_worker; go mod download
+
+COPY ./format_worker/src/ ./format_worker/src/
+
+RUN cd format_worker/src; CGO_ENABLED=0 GOOS=linux go build -o /app/format_worker/format-worker
+
+CMD cd /app/format_worker/; ./format-worker
