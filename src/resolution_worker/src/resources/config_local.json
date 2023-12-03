@@ -1,0 +1,16 @@
+{
+  "host": "localhost",
+  "port": 4222,
+  "queues": {
+    "input": "scale",
+    "output": "resize"
+  },
+  "metrics": {
+    "host": "graphite",
+    "port": 8125
+  },
+  "worker": {
+    "targetWidth": 100,
+    "targetHeight": 100
+  }
+}

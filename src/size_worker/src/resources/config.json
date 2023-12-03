@@ -1,0 +1,16 @@
+{
+  "host": "nats",
+  "port": 4222,
+  "queues": {
+    "input": "resize",
+    "output": "results"
+  },
+  "metrics": {
+    "host": "graphite",
+    "port": 8125
+  },
+  "worker": {
+    "targetWidth": 30,
+    "targetHeight": 30
+  }
+}

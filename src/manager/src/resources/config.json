@@ -1,0 +1,12 @@
+{
+  "host": "nats",
+  "port": 4222,
+  "queues": {
+    "input": "results",
+    "output": "format"
+  },
+  "metrics": {
+    "host": "graphite",
+    "port": 8125
+  }
+}
