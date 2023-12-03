@@ -1,0 +1,130 @@
+version: "3.7"
+
+services:
+  graphite:
+    image: graphiteapp/graphite-statsd:1.1.10-4
+    volumes:
+      - "./statsd.config.js:/opt/statsd/config.js:ro"
+      - "./graphite.storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf:ro"
+      - "./graphite:/opt/graphite/storage/:rw"
+    ports:
+      - "8080:8080"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    command: >
+      -storage_driver="statsd"
+      -storage_driver_host="graphite:8125"
+      -storage_driver_db="cadvisor"
+      -storage_driver_buffer_duration="10s"
+      --enable_metrics=cpu,cpuLoad,disk,diskIO,memory,network
+    depends_on:
+      - graphite
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/dev/disk/:/dev/disk:ro"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "8081:3000"
+    volumes:
+      - "grafana_config:/var/lib/grafana"
+    depends_on:
+      - graphite
+
+  nats:
+    image: nats:2.10.5
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "6222:6222"
+
+  format_worker:
+    build:
+      context: ./src/
+      dockerfile: format_worker/Dockerfile
+    tty: true
+    stdin_open: true
+    depends_on:
+      - graphite
+      - nats
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      replicas: ${N_WORKERS}
+      restart_policy:
+        condition: none
+    environment:
+      - LOCAL=${LOCAL}
+
+  resolution_worker:
+    build:
+      context: ./src/
+      dockerfile: resolution_worker/Dockerfile
+    tty: true
+    stdin_open: true
+    depends_on:
+      - graphite
+      - nats
+      - format_worker
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      replicas: ${N_WORKERS}
+      restart_policy:
+        condition: none
+    environment:
+      - LOCAL=${LOCAL}
+
+  size_worker:
+    build:
+      context: ./src/
+      dockerfile: size_worker/Dockerfile
+    tty: true
+    stdin_open: true
+    depends_on:
+      - graphite
+      - nats
+      - resolution_worker
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      replicas: ${N_WORKERS}
+      restart_policy:
+        condition: none
+    environment:
+      - LOCAL=${LOCAL}
+
+  manager:
+    build:
+      context: ./src/
+      dockerfile: manager/Dockerfile
+    depends_on:
+      - graphite
+      - nats
+      - format_worker
+    volumes:
+      - type: bind
+        source: ./shared_vol
+        target: /app/shared_vol
+    deploy:
+      restart_policy:
+        condition: none
+    tty: true
+    stdin_open: true
+    environment:
+      - LOCAL=${LOCAL}
+
+volumes:
+  grafana_config:
+    driver: local
