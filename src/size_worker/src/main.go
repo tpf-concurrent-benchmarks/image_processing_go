@@ -33,7 +33,6 @@ func main() {
 func subscribeForWork(conn *nats.Conn, workerConfig config.Config) {
 	_, err := conn.QueueSubscribe(workerConfig.Queues.Input, "workers_group", func(msg *nats.Msg) {
 		imagePath := string(msg.Data)
-		log.Println("Cropping work on ", imagePath)
 		newImagePath := createOutputDir(imagePath)
 		image_processing.CropCentered(imagePath, newImagePath, workerConfig.Worker.TargetWidth, workerConfig.Worker.TargetHeight)
 		err := conn.Publish(workerConfig.Queues.Output, []byte(common.JobDoneMessage))
