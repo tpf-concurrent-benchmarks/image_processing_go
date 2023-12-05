@@ -7,12 +7,18 @@ import (
 	common "shared"
 	"shared/config"
 	"time"
+	"github.com/cactus/go-statsd-client/v5/statsd"
 )
 
 func main() {
 	managerConfig := config.GetConfig()
 	connAddress := config.CreateConnectionAddress(managerConfig.Host, managerConfig.Port)
-	//metricsAddress := config.CreateMetricAddress(managerConfig.Metrics.Host, managerConfig.Metrics.Port)
+
+	metricsAddr := config.CreateMetricAddress(managerConfig.Metrics.Host, managerConfig.Metrics.Port)
+	statsdClient := CreateStatsClient(metricsAddr, utils.GetNodeID())
+
+	startTime := time.Now()
+
 	natsConnection, err := nats.Connect(connAddress)
 	if err != nil {
 		log.Fatalf("Unable to connect to NATS: %v", err)
@@ -30,6 +36,14 @@ func main() {
 	if <-shouldStop {
 		log.Println("All results received, sending end message to all workers")
 		sendEndMessage(natsConnection, common.EndWorkMessage, common.EndWorkQueue)
+
+		endTime := time.Now()
+		elapseTime := endTime.Sub(startTime).Milliseconds()
+		err = statsdClient.Gauge("completion_time", elapseTime, 1.0)
+		if err != nil {
+			log.Fatalf("Error sending metric to statsd: %s", err)
+		}
+
 		close(shouldStop)
 		natsConnection.Close()
 	}
@@ -66,4 +80,17 @@ func subscribeForResults(connection *nats.Conn, inputQueue string, workAmount in
 			stop <- true
 		}
 	})
+}
+
+func CreateStatsClient(metricsAddr, prefix string) statsd.Statter {
+	clientConfig := &statsd.ClientConfig{
+		Address: metricsAddr,
+		Prefix:  prefix,
+	}
+
+	statsdClient, err := statsd.NewClientWithConfig(clientConfig)
+	if err != nil {
+		log.Fatalf("Error creating statsd client: %s", err)
+	}
+	return statsdClient
 }

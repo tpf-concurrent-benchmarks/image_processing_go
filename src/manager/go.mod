@@ -3,6 +3,7 @@ module manager
 go 1.21.4
 
 require (
+	github.com/cactus/go-statsd-client/v5 v5.1.0
 	github.com/nats-io/nats.go v1.31.0
 	shared v0.0.0-00010101000000-000000000000
 )

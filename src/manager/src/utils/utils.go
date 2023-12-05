@@ -30,3 +30,10 @@ func GetImagesInDirectory(directory string) []string {
 
 	return imageFiles
 }
+
+func GetNodeID() string {
+	if os.Getenv("LOCAL") == "" {
+		return os.Getenv("NODE_ID")
+	}
+	return "manager"
+}
