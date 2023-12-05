@@ -5,15 +5,15 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-func Format(input_path, output_path string) {
+func Format(inputPath, outputPath string) {
 
-	jpegImage, err := imaging.Open(input_path)
+	jpegImage, err := imaging.Open(inputPath)
 	if err != nil {
 		fmt.Println("Error opening JPEG image:", err)
 		return
 	}
 
-	err = imaging.Save(jpegImage, output_path)
+	err = imaging.Save(jpegImage, outputPath)
 	if err != nil {
 		fmt.Println("Error saving PNG image:", err)
 		return

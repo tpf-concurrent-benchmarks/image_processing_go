@@ -10,8 +10,6 @@ import (
 )
 
 func main() {
-	image_processing.CropCentered("src/resources/rust.png", "src/resources/rust_cropped.png", 100, 100)
-
 	workerConfig := config.GetConfig()
 	connString := config.CreateConnectionAddress(workerConfig.Host, workerConfig.Port)
 	natsConn, err := nats.Connect(connString)
@@ -35,9 +33,9 @@ func main() {
 func subscribeForWork(conn *nats.Conn, workerConfig config.Config) {
 	_, err := conn.QueueSubscribe(workerConfig.Queues.Input, "workers_group", func(msg *nats.Msg) {
 		imagePath := string(msg.Data)
-		// TODO: replace with image cropping
-		log.Println("Simulating work on ", imagePath)
-		//newImagePath := createOutputDir(imagePath)
+		log.Println("Cropping work on ", imagePath)
+		newImagePath := createOutputDir(imagePath)
+		image_processing.CropCentered(imagePath, newImagePath, workerConfig.Worker.TargetWidth, workerConfig.Worker.TargetHeight)
 		err := conn.Publish(workerConfig.Queues.Output, []byte(common.JobDoneMessage))
 		if err != nil {
 			log.Fatalf("Error publishing to queue: %s", err)

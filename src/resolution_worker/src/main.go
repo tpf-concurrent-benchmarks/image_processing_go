@@ -4,13 +4,12 @@ import (
 	"github.com/nats-io/nats.go"
 	"log"
 	"path/filepath"
+	"resolution_worker/src/image_processing"
 	common "shared"
 	"shared/config"
-	"resolution_worker/src/image_processing"
 )
 
 func main() {
-	image_processing.ChangeResolution("src/resources/rust.png", "src/resources/rust_resized.png", 100, 100)
 
 	workerConfig := config.GetConfig()
 	connString := config.CreateConnectionAddress(workerConfig.Host, workerConfig.Port)
@@ -35,9 +34,9 @@ func main() {
 func subscribeForWork(conn *nats.Conn, workerConfig config.Config) {
 	_, err := conn.QueueSubscribe(workerConfig.Queues.Input, "workers_group", func(msg *nats.Msg) {
 		imagePath := string(msg.Data)
-		// TODO: replace with image resizing
-		log.Println("Simulating work on ", imagePath)
+		log.Println("Resizing work on ", imagePath)
 		newImagePath := createOutputDir(imagePath)
+		image_processing.ChangeResolution(imagePath, newImagePath, workerConfig.Worker.TargetWidth, workerConfig.Worker.TargetHeight)
 		err := conn.Publish(workerConfig.Queues.Output, []byte(newImagePath))
 		if err != nil {
 			log.Fatalf("Error publishing to queue: %s", err)

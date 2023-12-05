@@ -1,17 +1,16 @@
 package main
 
 import (
+	"format_worker/src/image_processing"
 	"github.com/nats-io/nats.go"
 	"log"
 	"path/filepath"
 	common "shared"
 	"shared/config"
 	"strings"
-	"format_worker/src/image_processing"
 )
 
 func main() {
-	image_processing.Format("src/resources/rust.jpeg", "src/resources/rust.png")
 
 	workerConfig := config.GetConfig()
 	connString := config.CreateConnectionAddress(workerConfig.Host, workerConfig.Port)
@@ -36,9 +35,9 @@ func main() {
 func subscribeForWork(conn *nats.Conn, workerConfig config.Config) {
 	_, err := conn.QueueSubscribe(workerConfig.Queues.Input, "workers_group", func(msg *nats.Msg) {
 		imagePath := string(msg.Data)
-		// TODO: replace with image formatting
 		outputPath := createOutputDir(imagePath)
-		log.Println("Simulating work on ", imagePath)
+		log.Println("Changing format work on ", imagePath)
+		image_processing.Format(imagePath, outputPath)
 		err := conn.Publish(workerConfig.Queues.Output, []byte(outputPath))
 		if err != nil {
 			log.Fatalf("Error publishing to queue: %s", err)
