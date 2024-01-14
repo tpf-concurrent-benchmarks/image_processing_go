@@ -36,7 +36,7 @@ deploy: docker_build create_directories
 	N_WORKERS=${N_WORKERS} docker compose -f=docker-compose-deploy-local.yml up
 
 deploy_remote: create_directories
-	N_WORKERS=${N_WORKERS} docker stack deploy -c docker-compose-deploy.yml gs_go
+	N_WORKERS=${N_WORKERS} docker stack deploy -c docker-compose-deploy.yml ip_go
 
 down_graphite:
 	if docker stack ls | grep -q graphite; then \
