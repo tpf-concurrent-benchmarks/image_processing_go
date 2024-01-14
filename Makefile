@@ -85,5 +85,5 @@ deploy_cloud: remove
 	NFS_SERVER_IP=$(NFS_SERVER_IP) \
 	NFS_SERVER_PATH=$(NFS_SERVER_PATH) \
 	sudo -E docker stack deploy \
-	-c docker-compose-deploy-cloud.yml ip_cpp; do sleep 1; done
+	-c docker-compose-deploy-cloud.yml ip_go; do sleep 1; done
 .PHONY: deploy_cloud
