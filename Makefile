@@ -1,4 +1,4 @@
-N_WORKERS=4
+N_WORKERS=2
 
 init:
 	docker swarm init
@@ -25,12 +25,12 @@ create_directories:
 	mkdir -p graphite
 	mkdir -p shared_vol
 	mkdir -p shared_vol/input
+	rm -rf shared_vol/resized || true
+	rm -rf shared_vol/formatted || true
+	rm -rf shared_vol/cropped || true
 	mkdir -p shared_vol/resized
-	rm -f shared_vol/resized/*
 	mkdir -p shared_vol/formatted
-	rm -f shared_vol/formatted/*
 	mkdir -p shared_vol/cropped
-	rm -f shared_vol/cropped/*
 
 deploy: docker_build create_directories
 	N_WORKERS=${N_WORKERS} docker compose -f=docker-compose-deploy-local.yml up
