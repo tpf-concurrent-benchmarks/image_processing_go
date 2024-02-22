@@ -80,6 +80,9 @@ services:
       - "4222:4222"
       - "8222:8222"
       - "6222:6222"
+    volumes:
+      - ./nats-server.conf:/etc/nats/nats-server.conf
+    command: "-c /etc/nats/nats-server.conf"
 
   format_worker:
     image: image_processing_go_format_worker
