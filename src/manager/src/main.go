@@ -74,6 +74,7 @@ func subscribeForResults(connection *nats.Conn, inputQueue string, workAmount in
 		message := string(msg.Data)
 		if message != common.JobDoneMessage {
 			log.Println("Ignoring message from worker: ", message)
+			return
 		}
 		resultsReceived++
 		if resultsReceived == workAmount {

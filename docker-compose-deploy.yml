@@ -55,10 +55,13 @@ services:
       - "4222:4222"
       - "8222:8222"
       - "6222:6222"
+    volumes:
+      - ./nats-server.conf:/etc/nats/nats-server.conf
+    command: "-c /etc/nats/nats-server.conf"
 
   format_worker:
     image: image_processing_go_format_worker
-    command: bash -c "sleep 10 && cd /app/format_worker/ && ./format-worker"
+    command: sh -c "sleep 10 && cd /app/format_worker/ && ./format-worker"
     depends_on:
       - graphite
       - nats
@@ -76,7 +79,7 @@ services:
 
   resolution_worker:
     image: image_processing_go_resolution_worker
-    command: bash -c "sleep 10 && cd /app/resolution_worker/ && ./resolution-worker"
+    command: sh -c "sleep 10 && cd /app/resolution_worker/ && ./resolution-worker"
     depends_on:
       - graphite
       - nats
@@ -95,7 +98,7 @@ services:
 
   size_worker:
     image: image_processing_go_size_worker
-    command: bash -c "sleep 10 && cd /app/size_worker/ && ./size-worker"
+    command: sh -c "sleep 10 && cd /app/size_worker/ && ./size-worker"
     depends_on:
       - graphite
       - nats
@@ -114,7 +117,7 @@ services:
 
   manager:
     image: image_processing_go_manager
-    command: bash -c "sleep 10 && cd /app/manager/ && ./manager"
+    command: sh -c "sleep 10 && cd /app/manager/ && ./manager"
     depends_on:
       - graphite
       - nats

@@ -22,7 +22,7 @@ func GetImagesInDirectory(directory string) []string {
 	for _, file := range files {
 		if !file.IsDir() {
 			extension := strings.ToLower(filepath.Ext(file.Name()))
-			if extension == ".jpg" || extension == ".png" || extension == ".gif" {
+			if extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".gif" {
 				imageFiles = append(imageFiles, filepath.Join(directory, file.Name()))
 			}
 		}
