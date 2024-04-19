@@ -1,7 +1,8 @@
 N_WORKERS=2
+SYNC_TIME=20
 
 init:
-	docker swarm init
+	docker swarm init || true
 
 build:
 	docker rmi image_processing_go_format_worker -f
@@ -32,11 +33,22 @@ create_directories:
 	mkdir -p shared_vol/formatted
 	mkdir -p shared_vol/cropped
 
-deploy: docker_build create_directories
-	N_WORKERS=${N_WORKERS} docker compose -f=docker-compose-deploy-local.yml up
+template_data: create_directories
+	wget https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/481px-Cat03.jpg -P shared_vol/input/
 
-deploy_remote: create_directories
-	N_WORKERS=${N_WORKERS} docker stack deploy -c docker-compose-deploy.yml ip_go
+
+deploy: docker_build create_directories
+	until \
+	N_WORKERS=${N_WORKERS} \
+	SYNC_TIME=${SYNC_TIME} \
+	docker stack deploy \
+	-c docker-compose-deploy.yml ip_go; \
+	do sleep 1; done
+
+remove:
+	if docker stack ls | grep -q ip_go; then \
+            docker stack rm ip_go; \
+	fi
 
 down_graphite:
 	if docker stack ls | grep -q graphite; then \
@@ -87,3 +99,19 @@ deploy_cloud: remove
 	sudo -E docker stack deploy \
 	-c docker-compose-deploy-cloud.yml ip_go; do sleep 1; done
 .PHONY: deploy_cloud
+
+manager_logs:
+	docker service logs -f ip_go_manager
+.PHONY: manager_logs
+
+format_logs:
+	docker service logs -f ip_go_format_worker
+.PHONY: format_logs
+
+res_logs:
+	docker service logs -f ip_go_resolution_worker
+.PHONY: res_logs
+
+size_logs:
+	docker service logs -f ip_go_size_worker
+.PHONY: size_logs

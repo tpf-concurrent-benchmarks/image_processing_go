@@ -1,6 +1,47 @@
 # Image processing in Go
 
-## Running the project locally
+## Objective
+
+This is a Go implementation of an image processing pipeline under [common specifications](https://github.com/tpf-concurrent-benchmarks/docs/tree/main/image_processing) defined for multiple languages.
+
+The objective of this project is to benchmark the language on a real-world distributed system.
+
+## Deployment
+
+### Requirements
+
+- [Docker >3](https://www.docker.com/) (needs docker swarm)
+- [Golang >1.21.4](https://golang.org/)
+
+### Configuration
+
+- **Number of replicas:** `N_WORKERS` constant is defined in the `Makefile` file (this config is built into the containers).
+- **Manager config:** in `src/manager/src/resources/config.json` you can define (this config is built into the container):
+  - middleware config (nats addres, queues, etc)
+  - metrics config (graphite address)
+
+### Commands
+
+#### Startup
+
+- `make setup`: runs both `init` and `build`.
+  - `make init`: starts docker swarm.
+  - `make build`: builds manager and worker images.
+- `template_data`: downloads test image into the input folder
+
+#### Run
+
+- `make deploy`: deploys the manager and worker services locally, alongside with Graphite, Grafana and cAdvisor.
+- `make remove`: removes all services (stops the swarm).
+
+> If the manager fails because a service is not ready, increase `SYNC_TIME` in the Makefile and retry.
+
+#### Logs
+
+- `make manager_logs`: shows the logs of the manager service
+- `make format_logs`, `make res_logs`, `make size_logs`: shows the logs of the worker services
+
+#### Running the project locally
 
 The minimum required version of `Go` is 1.21.4 as per requested in the `go.mod` file.
 There are four projects in this repository. Either of them can be built with the following commands:
@@ -8,30 +49,10 @@ There are four projects in this repository. Either of them can be built with the
 ```bash
 cd ./src/XX && LOCAL=local go run ./src
 ```
+
 where `XX` is either `manager`, `format_worker`, `resolution_worker` or `size_worker`.
 
-
-## Running all services with Docker
-
-```bash
-docker compose -f=docker-compose-deploy-local.yml up --build
-```
-
-## Number of worker replicas
-
-If you wish to change the number of worker replicas, you can do so by changing the `N_WORKERS` constant in the `Makefile` file.
-
-## Makefile
-
-There is a Makefile in the root directory of the project that can be used to build and run the project
-
-- `make build`: builds manager and worker images.
-- `make deploy`: deploys the manager and worker services locally, alongside with Graphite, Grafana and cAdvisor.
-- `make deploy_remote`: deploys (with Docker Swarm) the manager and worker services, alongside with Graphite, Grafana and cAdvisor.
-- `make remove`: removes all services (stops the swarm).
-- `make run_manager_local:` runs the manager locally. Same for `make run_resolution_worker_local`, `make run_size_worker_local` and `make run_format_worker`
-
-## Used libraries
+## Libraries
 
 - [Statsd client](https://github.com/cactus/go-statsd-client): used to send metrics to Graphite.
 - [NATS client](https://github.com/nats-io/nats.go): used to communicate between manager and worker.
